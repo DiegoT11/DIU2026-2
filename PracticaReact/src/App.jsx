@@ -1,122 +1,112 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useState } from "react";
+import Header from "./components/Header";
+import Sidebar from "./components/Sidebar";
+import ChatArea from "./components/ChatArea";
+import "./App.css";
 
-function App() {
-  const [count, setCount] = useState(0)
-
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+function obtenerHoraActual() {
+  const ahora = new Date();
+  return ahora.toLocaleTimeString("es-MX", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
-export default App
+const respuestas = [
+  {
+    palabras: ["tipografía", "fuente", "font", "texto"],
+    texto:
+      "Una buena tipografía mejora la legibilidad y la jerarquía visual. Lo ideal es usar máximo 2-3 familias: una para títulos y otra para cuerpo. El tamaño base recomendado es 16px.",
+  },
+  {
+    palabras: ["color", "paleta", "contraste", "tono"],
+    texto:
+      "El color en UI no es solo estética: el contraste adecuado (WCAG AA requiere 4.5:1 en texto) garantiza accesibilidad. Herramientas como Coolors o Adobe Color ayudan a construir paletas coherentes.",
+  },
+  {
+    palabras: ["formulario", "form", "input", "campo"],
+    texto:
+      "Un buen formulario es claro, accesible y con validación útil. Usa labels visibles, mensajes de error descriptivos y agrupa campos relacionados. Nunca dependas solo del color para indicar errores.",
+  },
+  {
+    palabras: ["espaciado", "espacio", "padding", "margin", "grid"],
+    texto:
+      "El espaciado es uno de los pilares del diseño. Un sistema de espaciado consistente (4px, 8px, 16px, 32px...) crea ritmo visual y facilita la lectura. El espacio negativo también comunica.",
+  },
+  {
+    palabras: ["accesibilidad", "a11y", "aria", "screen reader"],
+    texto:
+      "La accesibilidad no es opcional: asegura que tu interfaz funcione con lectores de pantalla, teclado y distintos tamaños de texto. Usa HTML semántico, atributos ARIA y ratio de contraste suficiente.",
+  },
+];
+
+const respuestaDefault =
+  "Interesante pregunta sobre diseño de interfaces. ¿Puedes darme más contexto sobre lo que estás buscando?";
+
+function obtenerRespuesta(texto) {
+  const textoMin = texto.toLowerCase();
+  const coincidencia = respuestas.find((r) =>
+    r.palabras.some((p) => textoMin.includes(p))
+  );
+  return coincidencia ? coincidencia.texto : respuestaDefault;
+}
+
+function App() {
+  const [texto, setTexto] = useState("");
+  const [escribiendo, setEscribiendo] = useState(false);
+  const [mensajes, setMensajes] = useState([]);
+
+  function manejarEnvio(evento) {
+    evento.preventDefault();
+
+    const textoLimpio = texto.trim();
+    if (textoLimpio === "") return;
+
+    const mensajeUsuario = {
+      id: Date.now(),
+      tipo: "usuario",
+      texto: textoLimpio,
+      hora: obtenerHoraActual(),
+    };
+
+    setMensajes((actuales) => [...actuales, mensajeUsuario]);
+    setTexto("");
+    setEscribiendo(true);
+
+    setTimeout(() => {
+      const mensajeAsistente = {
+        id: Date.now() + 1,
+        tipo: "asistente",
+        texto: obtenerRespuesta(textoLimpio),
+        hora: obtenerHoraActual(),
+      };
+      setMensajes((actuales) => [...actuales, mensajeAsistente]);
+      setEscribiendo(false);
+    }, 1200 + Math.random() * 600);
+  }
+
+  function limpiarChat() {
+    setMensajes([]);
+    setTexto("");
+    setEscribiendo(false);
+  }
+
+  return (
+  <>
+    <Header totalMensajes={mensajes.length} />
+
+    <main className="layout">
+      <ChatArea
+        mensajes={mensajes}
+        escribiendo={escribiendo}
+        texto={texto}
+        setTexto={setTexto}
+        onEnviar={manejarEnvio}
+      />
+      <Sidebar onLimpiarChat={limpiarChat} />
+    </main>
+  </>
+);
+}
+
+export default App;
